@@ -117,4 +117,6 @@ export async function setup(options: SetupOptions) {
     ]);
 
     console.log("[Process Startup Complete]");
+
+    return bot;
 }
