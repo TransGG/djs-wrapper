@@ -1,7 +1,7 @@
 {
     "name": "@trans.gg/djs-wrapper",
     "private": false,
-    "version": "1.0.1",
+    "version": "1.0.2",
     "module": "index.ts",
     "dependencies": {
         "@hyperneutrino/djs-lite": "1.4.5",

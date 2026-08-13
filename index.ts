@@ -46,6 +46,7 @@ export async function setup(options: SetupOptions) {
               let message = "[Startup] Loaded interaction handlers:";
 
               for (const [key, map] of Object.entries(handlers)) {
+                  if (map.size === 0) continue;
                   message += `\n- ${key.replace(/Handlers$/, "")}: ${map.size}`;
                   for (const path of map.keys()) message += `\n  - ${path}`;
               }
