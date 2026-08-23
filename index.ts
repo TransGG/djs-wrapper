@@ -65,55 +65,55 @@ export async function setup(options: SetupOptions) {
         loadEventsPromise,
         loadInteractionsPromise,
         options.directories?.commands
-            ? loadCommands(bot, options.directories.commands, {
-                  guildId: Bun.env.COMMANDS_GUILD_ID,
-                  skipSettingCommands: !!Bun.env.NO_SET_COMMANDS,
-              }).then(({ commands }) => {
-                  if (commands.length === 0) return console.log("[Startup] Command loader found no commands to load.");
+            ? loadCommands(bot, options.directories.commands, Bun.env.COMMANDS_GUILD_ID).then(
+                  ({ commands, setCommands }) => {
+                      if (commands.length === 0)
+                          return console.log("[Startup] Command loader found no commands to load.");
 
-                  let message = "[Startup] Loaded commands";
-                  if (Bun.env.NO_SET_COMMANDS) message += " but skipped updating them in Discord";
-                  message += ":";
+                      let message = "[Startup] Loaded commands";
+                      if (!setCommands) message += " but skipped updating them in Discord";
+                      message += ":";
 
-                  const userCommands: UserApplicationCommandData[] = [];
-                  const messageCommands: MessageApplicationCommandData[] = [];
-                  const slashCommands: ChatInputApplicationCommandData[] = [];
+                      const userCommands: UserApplicationCommandData[] = [];
+                      const messageCommands: MessageApplicationCommandData[] = [];
+                      const slashCommands: ChatInputApplicationCommandData[] = [];
 
-                  for (const cmd of commands)
-                      if (cmd.type === ApplicationCommandType.User) userCommands.push(cmd);
-                      else if (cmd.type === ApplicationCommandType.Message) messageCommands.push(cmd);
-                      else if (!cmd.type || cmd.type === ApplicationCommandType.ChatInput) slashCommands.push(cmd);
+                      for (const cmd of commands)
+                          if (cmd.type === ApplicationCommandType.User) userCommands.push(cmd);
+                          else if (cmd.type === ApplicationCommandType.Message) messageCommands.push(cmd);
+                          else if (!cmd.type || cmd.type === ApplicationCommandType.ChatInput) slashCommands.push(cmd);
 
-                  for (const cmd of userCommands) message += `\n- ${cmd.name} (user context menu)`;
-                  for (const cmd of messageCommands) message += `\n- ${cmd.name} (message context menu)`;
+                      for (const cmd of userCommands) message += `\n- ${cmd.name} (user context menu)`;
+                      for (const cmd of messageCommands) message += `\n- ${cmd.name} (message context menu)`;
 
-                  for (const cmd of slashCommands) {
-                      const subcommandsAndGroups =
-                          cmd.options
-                              ?.filter(
-                                  (option) =>
-                                      option.type === ApplicationCommandOptionType.SubcommandGroup ||
-                                      option.type === ApplicationCommandOptionType.Subcommand,
-                              )
-                              .sort((x, y) => x.name.localeCompare(y.name)) ?? [];
+                      for (const cmd of slashCommands) {
+                          const subcommandsAndGroups =
+                              cmd.options
+                                  ?.filter(
+                                      (option) =>
+                                          option.type === ApplicationCommandOptionType.SubcommandGroup ||
+                                          option.type === ApplicationCommandOptionType.Subcommand,
+                                  )
+                                  .sort((x, y) => x.name.localeCompare(y.name)) ?? [];
 
-                      if (subcommandsAndGroups.length > 0) {
-                          for (const option of subcommandsAndGroups) {
-                              const subcommands =
-                                  option.options
-                                      ?.filter((option) => option.type === ApplicationCommandOptionType.Subcommand)
-                                      .sort((x, y) => x.name.localeCompare(y.name)) ?? [];
+                          if (subcommandsAndGroups.length > 0) {
+                              for (const option of subcommandsAndGroups) {
+                                  const subcommands =
+                                      option.options
+                                          ?.filter((option) => option.type === ApplicationCommandOptionType.Subcommand)
+                                          .sort((x, y) => x.name.localeCompare(y.name)) ?? [];
 
-                              if (subcommands.length > 0) {
-                                  for (const suboption of subcommands)
-                                      message += `\n- /${cmd.name} ${option.name} ${suboption.name}`;
-                              } else message += `\n- /${cmd.name} ${option.name}`;
-                          }
-                      } else message += `\n- /${cmd.name}`;
+                                  if (subcommands.length > 0) {
+                                      for (const suboption of subcommands)
+                                          message += `\n- /${cmd.name} ${option.name} ${suboption.name}`;
+                                  } else message += `\n- /${cmd.name} ${option.name}`;
+                              }
+                          } else message += `\n- /${cmd.name}`;
 
-                      console.log(message);
-                  }
-              })
+                          console.log(message);
+                      }
+                  },
+              )
             : null,
     ]);
 
