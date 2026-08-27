@@ -1,10 +1,10 @@
 {
     "name": "@trans.gg/djs-wrapper",
     "private": false,
-    "version": "2.1.0",
+    "version": "2.1.1",
     "module": "index.ts",
     "dependencies": {
-        "@hyperneutrino/djs-lite": "^1.7.1",
+        "@hyperneutrino/djs-lite": "^1.7.3",
         "discord.js": "^14.27.0"
     },
     "devDependencies": {
