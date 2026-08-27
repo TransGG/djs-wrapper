@@ -1,6 +1,7 @@
-import { MessageFlags, type Interaction, type RepliableInteraction } from "discord.js";
+import { Colors, ComponentType, MessageFlags, type Interaction, type RepliableInteraction } from "discord.js";
 import { displayInteractionResult } from "./format.ts";
 import type { Handler } from "./types.ts";
+import { name, webhook } from "./webhook.ts";
 
 const identity = <T>(value: T): T => value;
 
@@ -69,7 +70,27 @@ function wrapInteraction<T extends Interaction>(fn: Handler<T>): Handler<T> {
             .then(() => null)
             .catch((error) => error);
 
-        console.log(displayInteractionResult({ interaction, result, sendError, uuid }));
+        const display = displayInteractionResult({ interaction, result, sendError, uuid });
+        console.log(display);
+
+        if (!result.success && typeof result.error !== "string" && webhook)
+            webhook.send({
+                flags: MessageFlags.IsComponentsV2,
+                withComponents: true,
+                username: `[Alerts] ${name}`,
+                components: [
+                    {
+                        type: ComponentType.Container,
+                        accentColor: Colors.Red,
+                        components: [
+                            {
+                                type: ComponentType.TextDisplay,
+                                content: `### Error thrown by handler\n\`\`\`\n${display.slice(0, 4000 - 40)}\n\`\`\``,
+                            },
+                        ],
+                    },
+                ],
+            });
     };
 }
 

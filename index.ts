@@ -3,7 +3,10 @@ import {
     ApplicationCommandOptionType,
     ApplicationCommandType,
     Client,
+    Colors,
+    ComponentType,
     Events,
+    MessageFlags,
     type ChatInputApplicationCommandData,
     type MessageApplicationCommandData,
     type UserApplicationCommandData,
@@ -11,15 +14,39 @@ import {
 import { stringifyError } from "./lib/format.ts";
 import type { SetupOptions } from "./lib/types.ts";
 import { applyWrap } from "./lib/utils.ts";
+import { name, startupWebhook, webhook } from "./lib/webhook.ts";
 
-process.on("unhandledRejection", (error) =>
+process.on("unhandledRejection", (error) => {
+    const text = stringifyError(error);
+
     console.error(
-        `====== CRITICAL: UNCAUGHT ERROR ======\n!> ${stringifyError(error).replace(/\n/g, "\n!> ")}\n^^^^^^ END OF UNCAUGHT ERROR !! ^^^^^^`,
-    ),
-);
+        `====== CRITICAL: UNCAUGHT ERROR ======\n!> ${text.replace(/\n/g, "\n!> ")}\n^^^^^^ END OF UNCAUGHT ERROR !! ^^^^^^`,
+    );
+
+    if (webhook)
+        webhook.send({
+            flags: MessageFlags.IsComponentsV2,
+            withComponents: true,
+            username: `[Alerts] ${name}`,
+            components: [
+                {
+                    type: ComponentType.Container,
+                    accentColor: Colors.Red,
+                    components: [
+                        {
+                            type: ComponentType.TextDisplay,
+                            content: `### Critical: Uncaught Error\n\`\`\`\n${text.slice(0, 4000 - 40)}\n\`\`\``,
+                        },
+                    ],
+                },
+            ],
+        });
+});
 
 export async function setup(options: SetupOptions) {
     if (!Bun.env.TOKEN) throw new Error("[Fatal] Missing environment variable TOKEN.");
+
+    await startupWebhook(options);
 
     const client = new Client({ ...options, allowedMentions: { parse: [] } });
 
@@ -150,6 +177,21 @@ export async function setup(options: SetupOptions) {
     ]);
 
     console.log("[Process Startup Complete]");
+
+    webhook?.send({
+        flags: MessageFlags.IsComponentsV2,
+        withComponents: true,
+        username: `[Alerts] ${name}`,
+        components: [
+            {
+                type: ComponentType.Container,
+                accentColor: Colors.Green,
+                components: [
+                    { type: ComponentType.TextDisplay, content: `### Startup Complete\n${name} is now online.` },
+                ],
+            },
+        ],
+    });
 
     return bot;
 }
