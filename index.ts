@@ -169,9 +169,9 @@ export async function setup(options: SetupOptions) {
                               } else message += `\n- /${cmd.name} ${option.name}`;
                           }
                       } else message += `\n- /${cmd.name}`;
-
-                      console.log(message);
                   }
+
+                  console.log(message);
               })
             : null,
     ]);
